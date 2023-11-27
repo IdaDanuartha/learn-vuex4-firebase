@@ -1,6 +1,6 @@
 import { auth, db } from '../firebase/config'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
-import { addDoc, collection, deleteDoc, doc, onSnapshot } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore'
 import moment from 'moment/moment'
 import { createStore } from 'vuex'
 
@@ -41,7 +41,7 @@ const store = createStore({
       await signOut(auth)
       context.commit('setUser', null)
     },
-    async getBlogs(context, blogs) {
+    getBlogs(context, blogs) {
       onSnapshot(collection(db, "blogs"), (querySnapshot) => {
         const fbBlogs = []
         querySnapshot.forEach((doc) => {
@@ -50,12 +50,19 @@ const store = createStore({
             id: doc.id,
             title: doc.data().title,
             content: doc.data().content,
+            is_vote: doc.data().is_vote,
             created_at: moment(doc.data().created_at.toDate(), 'x').format('D MMM Y')
           }
           fbBlogs.push(blog)
         });
         blogs.value = fbBlogs
       });
+    },
+    async getBlog(context, {id, blog}) {
+      const blogContent = await getDoc(doc(db, "blogs", id));
+
+      blog.value.title = blogContent.data().title
+      blog.value.content = blogContent.data().content
     },
     async addBlog(context, { title, content}) {
       try {
@@ -67,6 +74,27 @@ const store = createStore({
         console.log("Document written with ID: ", docRef.id);
       } catch (e) {
         console.error("Error adding document: ", e);
+      }
+    },
+    async updateBlog(context, { id, title, content}) {
+      try {
+        const docRef = await updateDoc(doc(db, "blogs", id), {
+          title,
+          content,
+        });
+        console.log("Document updated with ID: ", docRef.id);
+      } catch (e) {
+        console.error("Error updating document: ", e);
+      }
+    },
+    async updateVote(context, {id, vote}) {
+      try {
+        const docRef = await updateDoc(doc(db, "blogs", id), {
+          is_vote: vote,
+        });
+        console.log("Document updated with ID: ", docRef.id);
+      } catch (e) {
+        console.error("Error updating document: ", e);
       }
     },
     async deleteBlog(context, id) {

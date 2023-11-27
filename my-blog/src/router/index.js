@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Signup from '../views/Signup.vue'
 import Login from '../views/Login.vue'
 import AddBlog from '../views/AddBlog.vue'
+import EditBlog from '../views/EditBlog.vue'
 
 const routes = [
   {
@@ -24,6 +25,11 @@ const routes = [
     path: '/add',
     name: 'AddBlog',
     component: AddBlog
+  },
+  {
+    path: '/:id/edit',
+    name: 'EditBlog',
+    component: EditBlog
   }
 ]
 
