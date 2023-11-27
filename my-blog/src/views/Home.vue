@@ -17,9 +17,16 @@
 <script>
 import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
+import { collection, getDocs } from "firebase/firestore"; 
+import { db } from '../firebase/config.js'
 
 export default {
-  setup() {
+  async setup() {
+    const querySnapshot = await getDocs(collection(db, "blogs"));
+    querySnapshot.forEach((doc) => {
+      console.log(`${doc.id} => ${doc.data()}`);
+    });
+
     const blogs = ref([
       { title: 'Why Coffee is Better than Tea', id: 1 },
       { title: '...Then I Took an Arrow in the Knee', id: 2 },
@@ -32,7 +39,8 @@ export default {
 
     return { 
       blogs,
-      user: computed(() => store.state.user)
+      user: computed(() => store.state.user),
+      querySnapshot
     }
   }
 }
