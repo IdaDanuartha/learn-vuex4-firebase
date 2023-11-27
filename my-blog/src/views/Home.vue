@@ -11,55 +11,32 @@
           <span class="material-icons">thumb_up</span>
           <span class="material-icons">thumb_down</span>
         </div>
+        <button style="background-color: rgb(233, 48, 48); margin-top: 10px;" v-on:click="deleteBlog(blog.id)">Delete</button>
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
-import { collection, onSnapshot } from "firebase/firestore"; 
-import { db } from '../firebase/config.js'
-import moment from "moment"
 
+const store = useStore()
+const blogs = ref([])
+const user = computed(() => store.state.user)
 
-export default {
-  setup() {
-    const blogs = ref([])
+onMounted(() => {
+  // Get realtime updates
+  store.dispatch('getBlogs', blogs)
+})    
 
-    onMounted(() => {
-      // Get realtime updates
-      onSnapshot(collection(db, "blogs"), (querySnapshot) => {
-        const fbBlogs = []
-        querySnapshot.forEach((doc) => {
-          console.log(doc.data().created_at)
-          const blog = {
-            id: doc.id,
-            title: doc.data().title,
-            content: doc.data().content,
-            created_at: moment(doc.data().created_at.toDate(), 'x').format('D MMM Y')
-          }
-          fbBlogs.push(blog)
-        });
-        blogs.value = fbBlogs
-      });
-    })    
+store.commit('setUser', store.state.user)  
 
-    const store = useStore()
-    store.commit('setUser', store.state.user)  
+const deleteBlog = (id) => {
+  const confirmDelete = confirm('Are you sure you want to delete')
 
-    // let blog = ref({
-    //   title: '',
-    //   content: ''
-    // })
-
-    // const addBlog = () => store.dispatch('addBlog', blog)
-
-    return { 
-      blogs,
-      user: computed(() => store.state.user),
-    }
+  if(confirmDelete) {
+    store.dispatch('deleteBlog', id)
   }
 }
 </script>

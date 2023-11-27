@@ -1,6 +1,7 @@
 import { auth, db } from '../firebase/config'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
-import { addDoc, collection } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, onSnapshot } from 'firebase/firestore'
+import moment from 'moment/moment'
 import { createStore } from 'vuex'
 
 const store = createStore({
@@ -40,6 +41,22 @@ const store = createStore({
       await signOut(auth)
       context.commit('setUser', null)
     },
+    async getBlogs(context, blogs) {
+      onSnapshot(collection(db, "blogs"), (querySnapshot) => {
+        const fbBlogs = []
+        querySnapshot.forEach((doc) => {
+          console.log(doc.data().created_at)
+          const blog = {
+            id: doc.id,
+            title: doc.data().title,
+            content: doc.data().content,
+            created_at: moment(doc.data().created_at.toDate(), 'x').format('D MMM Y')
+          }
+          fbBlogs.push(blog)
+        });
+        blogs.value = fbBlogs
+      });
+    },
     async addBlog(context, { title, content}) {
       try {
         const docRef = await addDoc(collection(db, "blogs"), {
@@ -48,6 +65,15 @@ const store = createStore({
           created_at: new Date()
         });
         console.log("Document written with ID: ", docRef.id);
+      } catch (e) {
+        console.error("Error adding document: ", e);
+      }
+    },
+    async deleteBlog(context, id) {
+      try {
+        await deleteDoc(doc(db, "blogs", id));
+
+        console.log("Document written with ID: ", id);
       } catch (e) {
         console.error("Error adding document: ", e);
       }
