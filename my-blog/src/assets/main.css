@@ -10,6 +10,9 @@ body {
   max-width: 960px;
   margin: 0 auto;
 }
+a {
+  text-decoration: none;
+}
 
 /* navbar */
 nav {
@@ -30,7 +33,7 @@ nav a {
 nav span {
   color: #777;
 }
-button {
+button, a.btn {
   background:#00dba4;
   border: 0;
   padding: 6px 10px;
@@ -76,4 +79,10 @@ label {
 form button {
   display: block;
   margin-top: 20px;
+}
+form input {
+  display: block;
+  width: 50%;
+  padding: 10px 15px;
+  margin-bottom: 15px;
 }

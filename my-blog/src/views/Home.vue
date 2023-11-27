@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+    <router-link class="btn" :to="{name: 'AddBlog'}">Add Blog</router-link>
     <div v-for="blog in blogs" :key="blog.id">
       <div class="blog">
         <p>{{ blog.created_at }}</p>
@@ -28,20 +29,6 @@ export default {
     const blogs = ref([])
 
     onMounted(() => {
-      // const querySnapshot = await getDocs(collection(db, "blogs"));
-      // const fbBlogs = []
-      // querySnapshot.forEach((doc) => {
-      //   console.log(doc.data().created_at)
-      //   const blog = {
-      //     id: doc.id,
-      //     title: doc.data().title,
-      //     content: doc.data().content,
-      //     created_at: moment(doc.data().created_at.toDate(), 'x').format('D MMM Y')
-      //   }
-      //   fbBlogs.push(blog)
-      // });
-      // blogs.value = fbBlogs
-
       // Get realtime updates
       onSnapshot(collection(db, "blogs"), (querySnapshot) => {
         const fbBlogs = []
