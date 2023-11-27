@@ -2,8 +2,9 @@
   <div class="home">
     <div v-for="blog in blogs" :key="blog.id">
       <div class="blog">
+        <p>{{ blog.created_at }}</p>
         <h3>{{ blog.title }}</h3>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur aspernatur consectetur doloremque sunt ducimus enim iure animi fugit nulla et! Perferendis autem deleniti quo eum corrupti reiciendis voluptatem ab ducimus?</p>
+        <p>{{ blog.content }}</p>        
         <div class="icons" v-if="user">
           <span>upvote or downvote this article: </span>
           <span class="material-icons">thumb_up</span>
@@ -15,32 +16,62 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
-import { collection, getDocs } from "firebase/firestore"; 
+import { collection, onSnapshot } from "firebase/firestore"; 
 import { db } from '../firebase/config.js'
+import moment from "moment"
+
 
 export default {
-  async setup() {
-    const querySnapshot = await getDocs(collection(db, "blogs"));
-    querySnapshot.forEach((doc) => {
-      console.log(`${doc.id} => ${doc.data()}`);
-    });
+  setup() {
+    const blogs = ref([])
 
-    const blogs = ref([
-      { title: 'Why Coffee is Better than Tea', id: 1 },
-      { title: '...Then I Took an Arrow in the Knee', id: 2 },
-      { title: 'Mario vs Luigi, Ultimate Showdown', id: 3 },
-    ])
+    onMounted(() => {
+      // const querySnapshot = await getDocs(collection(db, "blogs"));
+      // const fbBlogs = []
+      // querySnapshot.forEach((doc) => {
+      //   console.log(doc.data().created_at)
+      //   const blog = {
+      //     id: doc.id,
+      //     title: doc.data().title,
+      //     content: doc.data().content,
+      //     created_at: moment(doc.data().created_at.toDate(), 'x').format('D MMM Y')
+      //   }
+      //   fbBlogs.push(blog)
+      // });
+      // blogs.value = fbBlogs
+
+      // Get realtime updates
+      onSnapshot(collection(db, "blogs"), (querySnapshot) => {
+        const fbBlogs = []
+        querySnapshot.forEach((doc) => {
+          console.log(doc.data().created_at)
+          const blog = {
+            id: doc.id,
+            title: doc.data().title,
+            content: doc.data().content,
+            created_at: moment(doc.data().created_at.toDate(), 'x').format('D MMM Y')
+          }
+          fbBlogs.push(blog)
+        });
+        blogs.value = fbBlogs
+      });
+    })    
 
     const store = useStore()
-
     store.commit('setUser', store.state.user)  
+
+    // let blog = ref({
+    //   title: '',
+    //   content: ''
+    // })
+
+    // const addBlog = () => store.dispatch('addBlog', blog)
 
     return { 
       blogs,
       user: computed(() => store.state.user),
-      querySnapshot
     }
   }
 }

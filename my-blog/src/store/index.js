@@ -1,5 +1,6 @@
-import { auth } from '../firebase/config'
+import { auth, db } from '../firebase/config'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
+import { addDoc, collection } from 'firebase/firestore'
 import { createStore } from 'vuex'
 
 const store = createStore({
@@ -38,6 +39,18 @@ const store = createStore({
     async logout(context) {
       await signOut(auth)
       context.commit('setUser', null)
+    },
+    async addBlog(context, { title, content}) {
+      try {
+        const docRef = await addDoc(collection(db, "blogs"), {
+          title,
+          content,
+          created_at: new Date()
+        });
+        console.log("Document written with ID: ", docRef.id);
+      } catch (e) {
+        console.error("Error adding document: ", e);
+      }
     }
   }
 })
