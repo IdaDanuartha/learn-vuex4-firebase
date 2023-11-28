@@ -3,7 +3,7 @@
     <router-link class="btn" :to="{name: 'AddBlog'}">Add Blog</router-link>
     <div v-for="blog in blogs" :key="blog.id">
       <div class="blog">
-        <img :src="thumbnail" alt="">
+        <img :src="blog.thumbnail_url" width="100" alt="">
         <p>{{ blog.created_at }}</p>
         <h3>{{ blog.title }}</h3>
         <p>{{ blog.content }}</p>        
@@ -13,7 +13,7 @@
           <span class="material-icons" v-on:click="updateVote(blog.id, false)" :class="blog.is_vote == false ? 'active':''">thumb_down</span>
         </div>
         <router-link class="btn" :to="{name: 'EditBlog', params: {id: blog.id}}" style="background-color: rgb(233, 155, 9); margin: 0 10px 10px 0;">Edit</router-link>
-        <button style="background-color: rgb(233, 48, 48); margin-top: 10px;" v-on:click="deleteBlog(blog.id)">Delete</button>
+        <button style="background-color: rgb(233, 48, 48); margin-top: 10px;" v-on:click="deleteBlog(blog.id, blog.thumbnail)">Delete</button>
       </div>
     </div>
   </div>
@@ -28,19 +28,20 @@ import { storage } from '../firebase/config';
 const store = useStore()
 const blogs = ref([])
 const user = computed(() => store.state.user)
-const thumbnail = ref(null)
+// const thumbnails = ref([])
 
 onMounted(async () => {
   // Get realtime updates
   await store.dispatch('getBlogs', blogs)
 
   // Get image from firebase storage
-  getDownloadURL(refFirebase(storage, 'blogs/logo_atrem.png')).then(
-    (download_url) => (thumbnail.value = download_url)
-  )
-
   setTimeout(() => {
-    console.log(blogs.value)
+    blogs.value.forEach((blog) => {
+      console.log("haiiii")
+      getDownloadURL(refFirebase(storage, `blogs/${blog.thumbnail}`)).then(
+        (download_url) => (blog.thumbnail_url = download_url)
+      )
+    })
   }, 3000)
 })    
 
@@ -53,11 +54,14 @@ const updateVote = async (id, vote) => {
   })  
 }
 
-const deleteBlog = (id) => {
+const deleteBlog = (id, filename) => {
   const confirmDelete = confirm('Are you sure you want to delete')
 
   if(confirmDelete) {
-    store.dispatch('deleteBlog', id)
+    store.dispatch('deleteBlog', {
+      id,
+      filename
+    })
   }
 }
 </script>

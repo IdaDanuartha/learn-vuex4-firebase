@@ -1,7 +1,7 @@
 import { auth, db, storage } from '../firebase/config'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
 import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore'
-import { ref, uploadBytes } from 'firebase/storage'
+import { deleteObject, ref, uploadBytes } from 'firebase/storage'
 import moment from 'moment/moment'
 import { createStore } from 'vuex'
 
@@ -107,8 +107,18 @@ const store = createStore({
         console.error("Error updating document: ", e);
       }
     },
-    async deleteBlog(context, id) {
+    async deleteBlog(context, {id, filename}) {
       try {
+        // Create a reference to the file to delete
+        const storageRef = ref(storage, `blogs/${filename}`);        
+
+        // Delete the file
+        deleteObject(storageRef).then(() => {
+          console.log("file deleted successfully")
+        }).catch((error) => {          
+          console.log(error)
+        });
+
         await deleteDoc(doc(db, "blogs", id));
 
         console.log("Document written with ID: ", id);
