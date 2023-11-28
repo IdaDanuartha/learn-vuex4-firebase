@@ -1,6 +1,7 @@
-import { auth, db } from '../firebase/config'
+import { auth, db, storage } from '../firebase/config'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
 import { addDoc, collection, deleteDoc, doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore'
+import { ref, uploadBytes } from 'firebase/storage'
 import moment from 'moment/moment'
 import { createStore } from 'vuex'
 
@@ -50,6 +51,7 @@ const store = createStore({
             id: doc.id,
             title: doc.data().title,
             content: doc.data().content,
+            thumbnail: doc.data().thumbnail,
             is_vote: doc.data().is_vote,
             created_at: moment(doc.data().created_at.toDate(), 'x').format('D MMM Y')
           }
@@ -64,11 +66,19 @@ const store = createStore({
       blog.value.title = blogContent.data().title
       blog.value.content = blogContent.data().content
     },
-    async addBlog(context, { title, content}) {
-      try {
+    async addBlog(context, { title, content, thumbnail}) {
+      try {        
+        const filename = thumbnail.files[0].name
+        const storageRef = ref(storage, `blogs/${filename}`);        
+
+        uploadBytes(storageRef, thumbnail.files[0]).then((snapshot) => {          
+          console.log('Uploaded a blob or file! ' + snapshot);
+        });
+
         const docRef = await addDoc(collection(db, "blogs"), {
           title,
           content,
+          thumbnail: filename,
           created_at: new Date()
         });
         console.log("Document written with ID: ", docRef.id);

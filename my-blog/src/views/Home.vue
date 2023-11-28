@@ -3,6 +3,7 @@
     <router-link class="btn" :to="{name: 'AddBlog'}">Add Blog</router-link>
     <div v-for="blog in blogs" :key="blog.id">
       <div class="blog">
+        <img :src="thumbnail" alt="">
         <p>{{ blog.created_at }}</p>
         <h3>{{ blog.title }}</h3>
         <p>{{ blog.content }}</p>        
@@ -19,16 +20,28 @@
 </template>
 
 <script setup>
+import { getDownloadURL, ref as refFirebase } from 'firebase/storage';
 import { computed, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
+import { storage } from '../firebase/config';
 
 const store = useStore()
 const blogs = ref([])
 const user = computed(() => store.state.user)
+const thumbnail = ref(null)
 
-onMounted(() => {
+onMounted(async () => {
   // Get realtime updates
-  store.dispatch('getBlogs', blogs)
+  await store.dispatch('getBlogs', blogs)
+
+  // Get image from firebase storage
+  getDownloadURL(refFirebase(storage, 'blogs/logo_atrem.png')).then(
+    (download_url) => (thumbnail.value = download_url)
+  )
+
+  setTimeout(() => {
+    console.log(blogs.value)
+  }, 3000)
 })    
 
 store.commit('setUser', store.state.user)  
